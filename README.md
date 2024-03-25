@@ -1,5 +1,3 @@
----
-
 **Repository Name: The Service Manager V1 OPOL**
 
 **Description:**
@@ -37,4 +35,3 @@ For inquiries or suggestions regarding "The Service Manager V1 OPOL," feel free 
 - System Requirements: Windows.
 - For detailed usage instructions and examples, consult the [documentation](link-to-documentation).
 
----
