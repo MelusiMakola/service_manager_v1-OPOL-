@@ -1,5 +1,5 @@
 #Melusi Makola 2023/31/10
-#Service Manager V1 - OPOl 
+#Service Manager V1 - OPOL 
 import random
 from login import *
 import hashlib
@@ -9,7 +9,7 @@ database = {}
 ticket = {}
 ticket_items = {}
 services = {"Printing": {"Color": 7, "B&W": 5}, "Copying": {"Color": 5, "B&W": 3}}
-admins = {"Melusi" : "447",}
+admins = {"Melusi": "447",}
 users = {"Mlungisi" : "884"}
 logged_in = False
 system_on = False 
@@ -67,7 +67,7 @@ def isAdmin(user):
     if user in admins:
         return True
 
-#A function to keep track of those thatt login            
+#A function to keep track of those that login            
 def save_logged_in_user(username):
     with open("logged_in_users.txt", "a") as file:
         file.write(username + "\n")
@@ -133,7 +133,7 @@ def view_ticket(ticket_num):
         total += subtotal
         print("{:<20} {:<10} {:<10}".format(service, amount, subtotal))
     print("-" * 40)
-    print("Total: ", total)
+    print(f"Total: R{total}")
 
 
 
