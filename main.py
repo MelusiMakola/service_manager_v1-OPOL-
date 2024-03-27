@@ -218,8 +218,8 @@ while command != "q" and logged_in:
     
     menu = ["[C] to Create Client Ticket", "[U] to Update Client Ticket", "[S] to Search for Client", "[L] to List Clients", "[Q] to Quit", "[P] for Pricelist", "[V] to View Ticket"]
     if isAdmin(user):
-        menu.append("[A]to Add Admin")
-        menu.append("[AS]to Add a Service")
+        menu.append("[A]to Add Admin", "[AS]to Add a Service")
+        
 
     for item in menu:
         print(item, end="  ")
