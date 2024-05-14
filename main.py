@@ -3,10 +3,10 @@
 import random
 from login import *
 import hashlib
+from datetime import datetime
 
 #Assignments
-database = {}
-ticket = {}
+ticket_database = {}
 ticket_items = {}
 services = {"Printing": {"Color": 7, "B&W": 5}, "Copying": {"Color": 5, "B&W": 3}}
 admins = {"Melusi": "447",}
@@ -69,12 +69,13 @@ def isAdmin(user):
 
 #A function to keep track of those that login            
 def save_logged_in_user(username):
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with open("logged_in_users.txt", "a") as file:
-        file.write(username + "\n")
+        file.write(f"{current_datetime} - {username}\n")
 
 
 
-#A function to generate a random number 
+#A function to generate a random ticket_num 
 def generate_unique_numbers(num_numbers, min_val, max_val):
     generated_numbers = set()
     while len(generated_numbers) < num_numbers:
@@ -95,6 +96,20 @@ def add_service(main_dict, service_catergory, service, price):
     main_dict[service_catergory][service] = price
 
 
+
+
+# Define a function to capture tickets in a text document
+def capture_tickets(ticket_database, file_path):
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(file_path, 'a') as file:
+        file.append("Tickets captured on: " + current_datetime + "\n\n")
+        for ticket_num, client_name in ticket_database.items():
+            file.write(f"Ticket Number: {ticket_num}, Client Name: {client_name}\n")
+
+
+
+
+
 #A function to print the pricelist      
 def print_pricelist(pricelist):
     for category, services in pricelist.items():
@@ -103,37 +118,94 @@ def print_pricelist(pricelist):
             print(f"\t\t{service}: R{price}")
 
 
-#A function to build ticket
-def build_ticket(ticket):
-    ticket_items = {}
-    if ticket_num in ticket.keys():
+def build_ticket(ticket_num, ticket_database):
+    if ticket_num in ticket_database:
+        ticket_items = {}
         while True:
             service = input("Enter Service (or type 'done' to finish adding services): ").strip()
             if service.lower() == 'done':
                 break
-            while True:
-                amount = input(f"Enter amount for {service}: ").strip()
-                if amount.isdigit():
-                    ticket_items[service] = int(amount)
-                    break
-                else:
-                    print("Please enter a valid amount (numeric).")
-        return ticket_items
+            amount = input(f"Enter amount for {service}: ").strip()
+            if amount.isdigit():
+                ticket_items[service] = int(amount)
+            else:
+                print("Please enter a valid amount (numeric).")
+        # Update ticket_database with ticket_items
+        ticket_database[ticket_num] = ticket_items
     else:
         print("Ticket not in database")
 
-#A function to view ticket
-def view_ticket(ticket_num):
-    total = 0
+
+# A function to view ticket_database
+def view_ticket(ticket_num, ticket_items):
+    if not ticket_items:
+        print("No items in the ticket.")
+        return
+
+    total = sum(ticket_items.values())
     print(f"Ticket No {ticket_num}: ")
     print("{:<20} {:<10} {:<10}".format("Service", "Amount", "Subtotal"))
     print("-" * 40)
     for service, amount in ticket_items.items():
-        subtotal = amount 
-        total += subtotal
-        print("{:<20} {:<10} {:<10}".format(service, amount, subtotal))
+        print("{:<20} {:<10} {:<10}".format(service, amount, amount))
     print("-" * 40)
     print(f"Total: R{total}")
+
+
+
+
+
+def update_ticket(ticket_num, client_name, ticket_items, ticket_database):
+    if ticket_database is None:
+        print("Error: Ticket database is not initialized.")
+        return
+    
+    if ticket_num not in ticket_database:
+        print("Error: Ticket not found in database.")
+        return
+    
+    if ticket_items is None:
+        print("Error: Ticket items are not provided.")
+        return
+    
+    if not isinstance(ticket_items, dict):
+        print("Error: Ticket items must be provided as a dictionary.")
+        return
+    
+    # Check if the client name is provided
+    if not client_name:
+        print("Error: Client name is required.")
+        return
+    
+    # Capture current date and time
+    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Update ticket information
+    ticket_database[ticket_num] = {
+        "client_name": client_name,
+        "ticket_items": ticket_items,
+        "last_updated": current_datetime
+    }
+    
+    print("Ticket updated successfully!")
+
+
+def add_ticket(ticket_num, ticket_items, ticket_database):
+    if ticket_num not in ticket_database:
+        ticket_database[ticket_num] = ticket_items
+        print("Ticket added successfully!")
+    else:
+        print("Ticket already exists in the database.")
+
+# A function to delete ticket from ticket_database
+def delete_ticket(ticket_num, ticket_database):
+    if ticket_num in ticket_database.keys():
+        del ticket_database[ticket_num]
+        print("Ticket deleted successfully!")
+    else:
+        print("Ticket not in database.")
+
+
 
 
 
@@ -218,7 +290,9 @@ while command != "q" and logged_in:
     
     menu = ["[C] to Create Client Ticket", "[U] to Update Client Ticket", "[S] to Search for Client", "[L] to List Clients", "[Q] to Quit", "[P] for Pricelist", "[V] to View Ticket"]
     if isAdmin(user):
-        menu.append("[A]to Add Admin", "[AS]to Add a Service")
+        menu.append("[A]to Add Admin")
+        menu.append("[AS]to Add A Service")
+
         
 
     for item in menu:
@@ -230,45 +304,54 @@ while command != "q" and logged_in:
 
     print("")
     
+    # Assuming the generate_unique_numbers function is defined elsewhere in your code
+
     if command == "c":
+        client = input("Enter Client Name: ").lower()
+        ticket_num = generate_unique_numbers(num_numbers=1, min_val=1, max_val=100)  # Example usage, adjust as needed
+        add_ticket(ticket_num, ticket_items, ticket_database)
+        print(f"{client.title()}, your ticket ticket_num is {ticket_num}")
+        ticket_database[ticket_num] = client
+        # Capture tickets in the text document
+        capture_tickets(ticket_database, file_path = "tickets.txt")
 
-        client = input("Enter Client Name : ").lower()
-       
-        number = generate_unique_numbers(num_numbers=1, min_val=1, max_val=100)
-
-        print(f"{client.title()} Your Ticket number is {str(number)}")
-        print("")
-        ticket[number] = client 
 
     elif command == "s":
-            search = int(input("Enter Ticket number: "))
+            search = int(input("Enter Ticket ticket_num: "))
             print("")
 
-            if not search in ticket:
-                print("There's no ticket with that number in the database")
+            if not search in ticket_database:
+                print("There's no ticket_database with that numberticket_ in the ")
             else:
-                print("Ticket number found")
-                print(f"Ticket number {str(search)} has been assigned to {ticket[search]}" )
+                print("Ticket ticket_num found")
+                print(f"Ticket ticket_num {str(search)} has been assigned to {ticket_database[search]}" )
                 print("")
             
            
     elif command == "l":
         print("Here's a List of the Clients in our record ")
-        for p in ticket:
-            print(f"[{str(p)}: {ticket[p]}]")
+        for p in ticket_database:
+            print(f"[{str(p)}: {ticket_database[p]}]")
             print("")     
 
     elif command == "v":
-        ticket_num = input("Ticket Number: ")
-        view_ticket(ticket_num)
+        ticket_num = int(input("Enter Ticket Number: "))
+        ticket_items = ticket_database.get(ticket_num)
+        if ticket_items:
+            view_ticket(ticket_num, ticket_items)
+        else:
+            print("Ticket is Empty")
+        
 
     elif command == "p" :
         print_pricelist(services)
-        print("")
 
     elif command == "u":
         ticket_num = int(input("Enter Ticket Number: "))
-        build_ticket(ticket)
+        ticket_items = build_ticket(ticket_num, ticket_database)
+        client_name = ticket_database[ticket_num]
+        update_ticket(ticket_num, client_name, ticket_items, ticket_database)
+
 
     elif command == "q":
         print("Program Ended")
@@ -279,6 +362,11 @@ while command != "q" and logged_in:
         passcode = input("Enter Passcode: ")
         addAdmin(admin_alias, passcode)
         save_admin_hash(admin_alias, passcode)  
+
+    elif command == "d":
+        ticket_num = int(input("Enter Ticket Number: "))
+        delete_ticket(ticket_num, ticket_database)
+
 
     elif command == "as":
         
